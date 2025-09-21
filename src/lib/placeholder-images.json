@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "Abstract health technology background",
+      "imageUrl": "https://picsum.photos/seed/medmind-hero/1920/1080",
+      "imageHint": "health technology"
+    },
+    {
+      "id": "dashboard-welcome",
+      "description": "A calm and relaxing scene",
+      "imageUrl": "https://picsum.photos/seed/medmind-dash/600/400",
+      "imageHint": "calm relax"
+    },
+    {
+      "id": "chatbot-avatar",
+      "description": "A friendly robot face for the chatbot",
+      "imageUrl": "https://picsum.photos/seed/medmind-bot/100/100",
+      "imageHint": "robot face"
+    },
+    {
+      "id": "user-avatar",
+      "description": "A generic user portrait",
+      "imageUrl": "https://picsum.photos/seed/medmind-user/100/100",
+      "imageHint": "person portrait"
+    }
+  ]
 }
