@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
 
   The user will provide a health query and the language of the query. You must respond in the same language.
 
-  Based on the query, suggest possible diseases and basic medicines. If the case seems severe, add a caution to consult a doctor.
+  Based on the query, suggest possible diseases and basic medicines. Your response should be brief and to the point, but not too short. If the case seems severe, add a caution to consult a doctor.
 
   Here are some common diseases and their symptoms:
   COVID-19: fever, cold, body pains
