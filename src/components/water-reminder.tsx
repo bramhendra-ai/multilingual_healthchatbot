@@ -19,8 +19,8 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { Droplets, Minus, Plus } from 'lucide-react';
 import { Progress } from './ui/progress';
+import { Input } from './ui/input';
 
-const WATER_GOAL_ML = 2000;
 const GLASS_ML = 250;
 const BOTTLE_ML = 500;
 
@@ -28,16 +28,26 @@ export default function WaterReminder() {
   const [isEnabled, setIsEnabled] = useState(true);
   const [interval, setInterval] = useState('2'); // in hours
   const [intake, setIntake] = useState(0);
+  const [waterGoal, setWaterGoal] = useState(2000);
 
   const handleAddWater = (amount: number) => {
-    setIntake((prev) => Math.min(prev + amount, WATER_GOAL_ML * 2)); // Cap at 2x goal
+    setIntake((prev) => Math.min(prev + amount, waterGoal * 2)); // Cap at 2x goal
   };
 
   const handleReset = () => {
     setIntake(0);
   };
 
-  const progressPercentage = (intake / WATER_GOAL_ML) * 100;
+  const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newGoal = parseInt(e.target.value, 10);
+    if (!isNaN(newGoal) && newGoal > 0) {
+      setWaterGoal(newGoal);
+    } else if (e.target.value === '') {
+      setWaterGoal(0);
+    }
+  };
+
+  const progressPercentage = waterGoal > 0 ? (intake / waterGoal) * 100 : 0;
 
   return (
     <Card>
@@ -78,9 +88,19 @@ export default function WaterReminder() {
         <div className="space-y-4 pt-4 border-t">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Today's Intake</h3>
-            <span className="text-sm text-muted-foreground">
-              Goal: {WATER_GOAL_ML}ml
-            </span>
+             <div className="flex items-center gap-2">
+              <Label htmlFor="water-goal" className="text-sm text-muted-foreground">Goal:</Label>
+              <Input
+                id="water-goal"
+                type="number"
+                value={waterGoal}
+                onChange={handleGoalChange}
+                className="w-24 h-8"
+                min="1"
+                step="100"
+              />
+              <span className="text-sm text-muted-foreground">ml</span>
+            </div>
           </div>
           <div className="text-center">
             <p className="text-4xl font-bold text-primary">{intake}ml</p>
