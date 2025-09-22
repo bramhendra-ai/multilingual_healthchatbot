@@ -53,6 +53,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 const timeStringSchema = z
   .string()
@@ -96,8 +97,13 @@ export default function MedicineReminder() {
   const [medicines, setMedicines] = useState<Medicine[]>(mockMedicines);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default');
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setNotificationPermission(Notification.permission);
+  }, []);
 
   const form = useForm<z.infer<typeof medicineSchema>>({
     resolver: zodResolver(medicineSchema),
@@ -115,7 +121,7 @@ export default function MedicineReminder() {
   });
 
   useEffect(() => {
-    if (!remindersEnabled) return;
+    if (!remindersEnabled || notificationPermission !== 'granted') return;
 
     const checkReminders = () => {
       const now = new Date();
@@ -135,12 +141,10 @@ export default function MedicineReminder() {
             });
 
             // Browser notification
-            if (Notification.permission === 'granted') {
-                 new Notification(t('medicine_notification_title'), {
-                    body: notificationBody,
-                    icon: '/logo.svg',
-                 });
-            }
+             new Notification(t('medicine_notification_title'), {
+                body: notificationBody,
+                icon: '/logo.svg',
+             });
           }
         });
       });
@@ -148,11 +152,15 @@ export default function MedicineReminder() {
 
     const interval = setInterval(checkReminders, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [medicines, remindersEnabled, t, toast]);
+  }, [medicines, remindersEnabled, t, toast, notificationPermission]);
 
   const toggleReminders = () => {
+    if (notificationPermission === 'denied') {
+      return; // Do nothing if permission is denied
+    }
+
     if (!remindersEnabled) {
-      if (Notification.permission === 'granted') {
+      if (notificationPermission === 'granted') {
         setRemindersEnabled(true);
         toast({
           title: t('notifications_enabled_title'),
@@ -160,17 +168,12 @@ export default function MedicineReminder() {
         });
       } else {
         Notification.requestPermission().then((permission) => {
+          setNotificationPermission(permission);
           if (permission === 'granted') {
             setRemindersEnabled(true);
             toast({
               title: t('notifications_enabled_title'),
               description: t('notifications_enabled_description'),
-            });
-          } else {
-            toast({
-              variant: 'destructive',
-              title: t('notification_permission_denied_title'),
-              description: t('notification_permission_denied_description'),
             });
           }
         });
@@ -249,6 +252,42 @@ export default function MedicineReminder() {
     return <Badge variant="outline">{t('medicine_status_pending')}</Badge>;
   };
 
+  const renderReminderButton = () => {
+    const button = (
+      <Button
+        variant={remindersEnabled ? 'default' : 'outline'}
+        size="icon"
+        onClick={toggleReminders}
+        disabled={notificationPermission === 'denied'}
+        aria-label={
+          remindersEnabled
+            ? t('disable_notifications_aria_label')
+            : t('enable_notifications_aria_label')
+        }
+      >
+        {remindersEnabled ? (
+          <BellOff className="h-4 w-4" />
+        ) : (
+          <Bell className="h-4 w-4" />
+        )}
+      </Button>
+    );
+
+    if (notificationPermission === 'denied') {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>{button}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t('notification_permission_denied_description')}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    return button;
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -261,22 +300,7 @@ export default function MedicineReminder() {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant={remindersEnabled ? 'default' : 'outline'}
-            size="icon"
-            onClick={toggleReminders}
-            aria-label={
-              remindersEnabled
-                ? t('disable_notifications_aria_label')
-                : t('enable_notifications_aria_label')
-            }
-          >
-            {remindersEnabled ? (
-              <BellOff className="h-4 w-4" />
-            ) : (
-              <Bell className="h-4 w-4" />
-            )}
-          </Button>
+          {renderReminderButton()}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>

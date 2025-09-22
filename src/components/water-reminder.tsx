@@ -22,6 +22,7 @@ import { Progress } from './ui/progress';
 import { Input } from './ui/input';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 const GLASS_ML = 250;
 const BOTTLE_ML = 500;
@@ -29,14 +30,19 @@ const BOTTLE_ML = 500;
 export default function WaterReminder() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [interval, setInterval] = useState('2'); // in hours
   const [intake, setIntake] = useState(0);
   const [waterGoal, setWaterGoal] = useState(2000);
+  const [notificationPermission, setNotificationPermission] = useState('default');
+
+  useEffect(() => {
+      setNotificationPermission(Notification.permission);
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
-    if (isEnabled && Notification.permission === 'granted') {
+    if (isEnabled && notificationPermission === 'granted') {
       const intervalInMs = parseInt(interval) * 60 * 60 * 1000;
       timer = setInterval(() => {
         new Notification(t('water_reminder_title'), {
@@ -50,22 +56,37 @@ export default function WaterReminder() {
         clearInterval(timer);
       }
     };
-  }, [isEnabled, interval, t]);
+  }, [isEnabled, interval, t, notificationPermission]);
 
-  useEffect(() => {
-    if (isEnabled && Notification.permission !== 'granted') {
-      Notification.requestPermission().then((permission) => {
-        if (permission !== 'granted') {
-          toast({
-            title: t('notification_permission_denied_title'),
-            description: t('notification_permission_denied_description'),
-            variant: 'destructive',
-          });
-          setIsEnabled(false);
-        }
+  const handleEnableSwitch = (checked: boolean) => {
+     if (checked) {
+      if (notificationPermission === 'granted') {
+        setIsEnabled(true);
+        toast({
+          title: t('notifications_enabled_title'),
+          description: t('notifications_enabled_description'),
+        });
+      } else if (notificationPermission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+          setNotificationPermission(permission);
+          if (permission === 'granted') {
+            setIsEnabled(true);
+            toast({
+              title: t('notifications_enabled_title'),
+              description: t('notifications_enabled_description'),
+            });
+          }
+        });
+      }
+    } else {
+      setIsEnabled(false);
+      toast({
+        title: t('notifications_disabled_title'),
+        description: t('notifications_disabled_description'),
       });
     }
-  }, [isEnabled, toast, t]);
+  }
+
 
   const handleAddWater = (amount: number) => {
     setIntake((prev) => Math.min(prev + amount, waterGoal * 2)); // Cap at 2x goal
@@ -83,6 +104,31 @@ export default function WaterReminder() {
       setWaterGoal(0);
     }
   };
+  
+  const renderEnableSwitch = () => {
+    const switchControl = (
+       <Switch
+          id="water-reminder-switch"
+          checked={isEnabled}
+          onCheckedChange={handleEnableSwitch}
+          disabled={notificationPermission === 'denied'}
+        />
+    );
+
+    if (notificationPermission === 'denied') {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>{switchControl}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t('notification_permission_denied_description')}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    return switchControl;
+  }
 
   const progressPercentage = waterGoal > 0 ? (intake / waterGoal) * 100 : 0;
 
@@ -100,11 +146,7 @@ export default function WaterReminder() {
             <Label htmlFor="water-reminder-switch">
               {t('enable_reminders_label')}
             </Label>
-            <Switch
-              id="water-reminder-switch"
-              checked={isEnabled}
-              onCheckedChange={setIsEnabled}
-            />
+            {renderEnableSwitch()}
           </div>
           {isEnabled && (
             <div className="flex items-center justify-between">
