@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {Message, Role, generate} from 'genkit/ai';
+import {Message, generate} from 'genkit';
 import {z} from 'genkit';
 
 const MultilingualHealthQueryChatbotInputSchema = z.object({

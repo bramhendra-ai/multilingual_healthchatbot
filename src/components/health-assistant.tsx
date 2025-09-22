@@ -21,7 +21,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
-import { Message, Role } from 'genkit/ai';
+import { Message } from 'genkit';
 
 interface DisplayMessage {
   id: number;
@@ -76,7 +76,7 @@ export default function HealthAssistant() {
     setMessages([welcomeMessage]);
 
     const welcomeHistory: Message = {
-      role: 'model' as Role,
+      role: 'model',
       content: [{ text: t('chatbot_welcome_message') }],
     };
     setChatHistory([welcomeHistory]);
