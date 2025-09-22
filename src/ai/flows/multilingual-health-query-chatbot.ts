@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {Message, generate} from 'genkit';
+import {Message} from 'genkit';
 import {z} from 'genkit';
 
 const MultilingualHealthQueryChatbotInputSchema = z.object({
@@ -80,7 +80,7 @@ const multilingualHealthQueryChatbotFlow = ai.defineFlow(
     const {history} = input;
     const lastUserMessage = history[history.length - 1];
 
-    const response = await generate({
+    const response = await ai.generate({
       prompt: lastUserMessage.content[0].text,
       history,
       system: `${systemPrompt}\nLanguage: ${input.language}`,
