@@ -13,11 +13,16 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight, Bot, BellRing, BarChart3 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { useReminders } from '@/hooks/use-reminders';
+import { format, addDays } from 'date-fns';
+
+const ML_PER_GLASS = 250;
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { medicines, waterReminder } = useReminders();
   const welcomeImage = PlaceHolderImages.find(
     (img) => img.id === 'dashboard-welcome'
   );
@@ -60,6 +65,33 @@ export default function DashboardPage() {
       cta: t('quick_link_history_cta'),
     },
   ];
+
+  const { dosesTaken, totalDoses } = useMemo(() => {
+    const today = new Date();
+    const dateString = format(today, 'yyyy-MM-dd');
+    let taken = 0;
+    let total = 0;
+
+    medicines.forEach((med) => {
+      const startDate = new Date(med.startDate);
+      const endDate = addDays(startDate, med.duration);
+      if (today >= startDate && today <= endDate) {
+        total += med.times.length;
+        const takenRecord = med.taken[dateString];
+        if (takenRecord) {
+          taken += takenRecord.filter(Boolean).length;
+        }
+      }
+    });
+    return { dosesTaken: taken, totalDoses: total };
+  }, [medicines]);
+
+  const waterIntake = useMemo(() => {
+    const glassesDrunk = Math.round(waterReminder.intake / ML_PER_GLASS);
+    const goalGlasses = Math.round(waterReminder.goal / ML_PER_GLASS);
+    return { glassesDrunk, goalGlasses };
+  }, [waterReminder.intake, waterReminder.goal]);
+
 
   return (
     <div className="space-y-8">
@@ -127,7 +159,7 @@ export default function DashboardPage() {
                     <CardTitle className='text-lg'>{t('medicine_status_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className='text-3xl font-bold'>2 / 4</p>
+                    <p className='text-3xl font-bold'>{dosesTaken} / {totalDoses}</p>
                     <p className='text-muted-foreground'>{t('doses_taken_today')}</p>
                 </CardContent>
             </Card>
@@ -136,7 +168,7 @@ export default function DashboardPage() {
                     <CardTitle className='text-lg'>{t('water_intake_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className='text-3xl font-bold'>5 / 8</p>
+                    <p className='text-3xl font-bold'>{waterIntake.glassesDrunk} / {waterIntake.goalGlasses}</p>
                     <p className='text-muted-foreground'>{t('glasses_drunk_today')}</p>
                 </CardContent>
             </Card>
