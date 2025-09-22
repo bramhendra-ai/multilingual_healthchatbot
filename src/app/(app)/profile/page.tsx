@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -31,24 +31,35 @@ const languages = [
 ];
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { t, setLanguage, language } = useTranslation();
   const { toast } = useToast();
   const [name, setName] = useState(user?.displayName || '');
   const [loading, setLoading] = useState(false);
 
-  const handleSaveChanges = () => {
+  useEffect(() => {
+    if (user?.displayName) {
+      setName(user.displayName);
+    }
+  }, [user]);
+
+  const handleSaveChanges = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you'd update the user profile in your backend
-      console.log('Saving profile:', { name, language });
+    try {
+      await updateProfile({ displayName: name });
       toast({
         title: t('profile_updated_toast_title'),
         description: t('profile_updated_toast_description'),
       });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update profile. Please try again.',
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

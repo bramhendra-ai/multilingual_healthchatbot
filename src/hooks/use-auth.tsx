@@ -16,8 +16,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, pass: string) => Promise<any>;
-  signUp: (email: string, pass: string) => Promise<any>;
+  signUp: (email: string, pass: string, name: string) => Promise<any>;
   signOut: () => Promise<void>;
+  updateProfile: (updates: { displayName?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +26,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Mock Firebase functions
 const mockSignInWithEmailAndPassword = async (email: string, pass: string) => {
   console.log('Mock sign in with', email, pass);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500));
+  // In a real app, this would come from the auth provider
+  const storedUser = localStorage.getItem('mockUser');
+  if (storedUser) {
+    return { user: JSON.parse(storedUser) };
+  }
   return {
     user: {
       uid: 'mock-uid-123',
@@ -37,22 +43,23 @@ const mockSignInWithEmailAndPassword = async (email: string, pass: string) => {
 
 const mockCreateUserWithEmailAndPassword = async (
   email: string,
-  pass: string
+  pass: string,
+  name: string
 ) => {
-  console.log('Mock sign up with', email, pass);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  console.log('Mock sign up with', email, pass, name);
+  await new Promise(resolve => setTimeout(resolve, 500));
   return {
     user: {
       uid: 'mock-uid-123',
       email: email,
-      displayName: 'Mock User',
+      displayName: name,
     } as User,
   };
 };
 
 const mockSignOut = async () => {
   console.log('Mock sign out');
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500));
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -96,14 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, pass: string) => {
+  const signUp = async (email: string, pass: string, name: string) => {
     setLoading(true);
     try {
       // In a real app, you'd use the commented out line
       // const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      // await updateProfile(userCredential.user, { displayName: name });
       const { user: signedUpUser } = await mockCreateUserWithEmailAndPassword(
         email,
-        pass
+        pass,
+        name
       );
       setUser(signedUpUser);
       localStorage.setItem('mockUser', JSON.stringify(signedUpUser));
@@ -131,7 +140,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value = { user, loading, signIn, signUp, signOut };
+  const updateProfile = async (updates: { displayName?: string }) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // In a real app, you'd use updateProfile(auth.currentUser, updates)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('mockUser', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Update profile error', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = { user, loading, signIn, signUp, signOut, updateProfile };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

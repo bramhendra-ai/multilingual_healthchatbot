@@ -88,8 +88,8 @@ export default function AuthForm() {
   const onSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
     setLoading(true);
     try {
-      await signUp(values.email, values.password);
-      // Here you would also save the name and language to Firestore
+      await signUp(values.email, values.password, values.name);
+      // Here you would also save the language to Firestore
       const redirect = searchParams.get('redirect') || '/dashboard';
       router.push(redirect);
     } catch (error) {
