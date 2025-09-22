@@ -126,12 +126,21 @@ export default function MedicineReminder() {
         med.times.forEach((time, index) => {
           const takenToday = med.taken[today] && med.taken[today][index];
           if (time === currentTime && !takenToday) {
-            new Notification(t('medicine_notification_title'), {
-              body: `${t('medicine_notification_body_part1')} ${med.name} ${
-                med.dosage
-              } ${t('medicine_notification_body_part2')}`,
-              icon: '/logo.svg',
+             const notificationBody = `${t('medicine_notification_body_part1')} ${med.name} ${med.dosage} ${t('medicine_notification_body_part2')}`;
+            
+            // In-app toast notification
+            toast({
+                title: t('medicine_notification_title'),
+                description: notificationBody,
             });
+
+            // Browser notification
+            if (Notification.permission === 'granted') {
+                 new Notification(t('medicine_notification_title'), {
+                    body: notificationBody,
+                    icon: '/logo.svg',
+                 });
+            }
           }
         });
       });
@@ -139,7 +148,7 @@ export default function MedicineReminder() {
 
     const interval = setInterval(checkReminders, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [medicines, remindersEnabled, t]);
+  }, [medicines, remindersEnabled, t, toast]);
 
   const toggleReminders = () => {
     if (!remindersEnabled) {
