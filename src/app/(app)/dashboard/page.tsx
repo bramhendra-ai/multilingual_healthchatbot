@@ -8,42 +8,56 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
+import { useTranslation } from '@/hooks/use-translation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight, Bot, BellRing, BarChart3 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const welcomeImage = PlaceHolderImages.find(
     (img) => img.id === 'dashboard-welcome'
   );
-  const now = new Date();
-  const greeting =
-    now.getHours() < 12
-      ? 'Good Morning'
-      : now.getHours() < 18
-      ? 'Good Afternoon'
-      : 'Good Evening';
+  
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour < 12) {
+      setGreeting(t('greeting_morning'));
+    } else if (hour < 18) {
+      setGreeting(t('greeting_afternoon'));
+    } else {
+      setGreeting(t('greeting_evening'));
+    }
+  }, [t]);
+
 
   const quickLinks = [
     {
       href: '/chatbot',
-      title: 'Ask our Assistant',
-      description: 'Get answers to your health questions.',
+      title: t('quick_link_assistant_title'),
+      description: t('quick_link_assistant_description'),
       icon: <Bot className="w-6 h-6 text-primary" />,
+      cta: t('quick_link_assistant_cta'),
     },
     {
       href: '/reminders',
-      title: 'Manage Reminders',
-      description: 'Set up new medicine or water reminders.',
+      title: t('quick_link_reminders_title'),
+      description: t('quick_link_reminders_description'),
       icon: <BellRing className="w-6 h-6 text-primary" />,
+      cta: t('quick_link_reminders_cta'),
     },
     {
       href: '/history',
-      title: 'View Your History',
-      description: 'Check your health reports and progress.',
+      title: t('quick_link_history_title'),
+      description: t('quick_link_history_description'),
       icon: <BarChart3 className="w-6 h-6 text-primary" />,
+      cta: t('quick_link_history_cta'),
     },
   ];
 
@@ -56,8 +70,7 @@ export default function DashboardPage() {
               {greeting}, {user?.displayName || 'User'}!
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Here&apos;s a quick look at your health dashboard. Stay on top of
-              your well-being.
+             {t('dashboard_welcome_message')}
             </p>
           </div>
           {welcomeImage && (
@@ -76,7 +89,7 @@ export default function DashboardPage() {
 
       <div>
         <h2 className="text-2xl font-headline font-semibold mb-4">
-          Quick Actions
+          {t('quick_actions_title')}
         </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {quickLinks.map((link) => (
@@ -93,7 +106,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center text-sm text-primary group-hover:underline">
-                    Go to {link.title.split(' ')[1]}
+                    {link.cta}
                     <ArrowRight className="ml-1 w-4 h-4" />
                   </div>
                 </CardContent>
@@ -105,26 +118,26 @@ export default function DashboardPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Today&apos;s Summary</CardTitle>
-          <CardDescription>A snapshot of your tasks for today.</CardDescription>
+          <CardTitle className="font-headline">{t('todays_summary_title')}</CardTitle>
+          <CardDescription>{t('todays_summary_description')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
             <Card className='bg-secondary'>
                 <CardHeader>
-                    <CardTitle className='text-lg'>Medicine Status</CardTitle>
+                    <CardTitle className='text-lg'>{t('medicine_status_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className='text-3xl font-bold'>2 / 4</p>
-                    <p className='text-muted-foreground'>Doses taken today</p>
+                    <p className='text-muted-foreground'>{t('doses_taken_today')}</p>
                 </CardContent>
             </Card>
             <Card className='bg-secondary'>
                 <CardHeader>
-                    <CardTitle className='text-lg'>Water Intake</CardTitle>
+                    <CardTitle className='text-lg'>{t('water_intake_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className='text-3xl font-bold'>5 / 8</p>
-                    <p className='text-muted-foreground'>Glasses drunk today</p>
+                    <p className='text-muted-foreground'>{t('glasses_drunk_today')}</p>
                 </CardContent>
             </Card>
         </CardContent>

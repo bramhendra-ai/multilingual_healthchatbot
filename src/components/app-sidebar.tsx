@@ -23,19 +23,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-
-const navItems = [
-  { href: '/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
-  { href: '/chatbot', icon: <Bot />, label: 'Health Assistant' },
-  { href: '/reminders', icon: <BellRing />, label: 'Reminders' },
-  { href: '/history', icon: <BarChart3 />, label: 'History' },
-  { href: '/profile', icon: <User />, label: 'Profile' },
-];
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { user, signOut, loading } = useAuth();
+  const { t } = useTranslation();
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+  const navItems = [
+    { href: '/dashboard', icon: <LayoutDashboard />, label: t('sidebar_dashboard') },
+    { href: '/chatbot', icon: <Bot />, label: t('sidebar_health_assistant') },
+    { href: '/reminders', icon: <BellRing />, label: t('sidebar_reminders') },
+    { href: '/history', icon: <BarChart3 />, label: t('sidebar_history') },
+    { href: '/profile', icon: <User />, label: t('sidebar_profile') },
+  ];
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
@@ -93,7 +95,7 @@ export default function AppSidebar() {
             size="icon"
             className="group-data-[collapsible=icon]:hidden text-muted-foreground hover:text-foreground"
             onClick={signOut}
-            tooltip="Log Out"
+            tooltip={t('sidebar_logout')}
           >
             <LogOut />
           </SidebarMenuButton>

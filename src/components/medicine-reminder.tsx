@@ -41,7 +41,7 @@ import { useState } from 'react';
 import type { Medicine } from '@/lib/types';
 import { addDays, format } from 'date-fns';
 import { Checkbox } from './ui/checkbox';
-import { Badge } from './ui/badge';
+import { useTranslation } from '@/hooks/use-translation';
 
 const medicineSchema = z.object({
   name: z.string().min(1, 'Medicine name is required'),
@@ -78,6 +78,7 @@ const mockMedicines: Medicine[] = [
 export default function MedicineReminder() {
   const [medicines, setMedicines] = useState<Medicine[]>(mockMedicines);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   const form = useForm<z.infer<typeof medicineSchema>>({
     resolver: zodResolver(medicineSchema),
@@ -131,21 +132,21 @@ export default function MedicineReminder() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="font-headline">Medicine Reminders</CardTitle>
+          <CardTitle className="font-headline">{t('medicine_reminders_title')}</CardTitle>
           <CardDescription>
-            Manage your medication schedule for today.
+            {t('medicine_reminders_description')}
           </CardDescription>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Medicine
+              {t('add_medicine_button')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Medicine</DialogTitle>
+              <DialogTitle>{t('add_medicine_modal_title')}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form
@@ -157,9 +158,9 @@ export default function MedicineReminder() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Medicine Name</FormLabel>
+                      <FormLabel>{t('medicine_name_label')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Paracetamol" {...field} />
+                        <Input placeholder={t('medicine_name_placeholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -170,9 +171,9 @@ export default function MedicineReminder() {
                   name="dosage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Dosage</FormLabel>
+                      <FormLabel>{t('dosage_label')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 500mg" {...field} />
+                        <Input placeholder={t('dosage_placeholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -183,9 +184,9 @@ export default function MedicineReminder() {
                   name="times"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Times (24h format, comma-separated)</FormLabel>
+                      <FormLabel>{t('times_label')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 08:00, 20:00" {...field} />
+                        <Input placeholder={t('times_placeholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -196,7 +197,7 @@ export default function MedicineReminder() {
                   name="duration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Duration (in days)</FormLabel>
+                      <FormLabel>{t('duration_label')}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -205,7 +206,7 @@ export default function MedicineReminder() {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit">Save Medicine</Button>
+                  <Button type="submit">{t('save_medicine_button')}</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -216,16 +217,16 @@ export default function MedicineReminder() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Medicine</TableHead>
-              <TableHead>Dosage</TableHead>
-              <TableHead>Schedule for Today</TableHead>
+              <TableHead>{t('medicine_table_col_medicine')}</TableHead>
+              <TableHead>{t('medicine_table_col_dosage')}</TableHead>
+              <TableHead>{t('medicine_table_col_schedule')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {medicines.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center h-24">
-                  No medicines added yet.
+                  {t('no_medicines_message')}
                 </TableCell>
               </TableRow>
             ) : (

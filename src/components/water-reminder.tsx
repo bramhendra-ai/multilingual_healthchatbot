@@ -20,11 +20,13 @@ import { Button } from './ui/button';
 import { Droplets, Minus, Plus } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Input } from './ui/input';
+import { useTranslation } from '@/hooks/use-translation';
 
 const GLASS_ML = 250;
 const BOTTLE_ML = 500;
 
 export default function WaterReminder() {
+  const { t } = useTranslation();
   const [isEnabled, setIsEnabled] = useState(true);
   const [interval, setInterval] = useState('2'); // in hours
   const [intake, setIntake] = useState(0);
@@ -52,15 +54,15 @@ export default function WaterReminder() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Water Reminder & Log</CardTitle>
+        <CardTitle className="font-headline">{t('water_reminder_title')}</CardTitle>
         <CardDescription>
-          Stay hydrated and track your intake throughout the day.
+          {t('water_reminder_description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="water-reminder-switch">Enable Reminders</Label>
+            <Label htmlFor="water-reminder-switch">{t('enable_reminders_label')}</Label>
             <Switch
               id="water-reminder-switch"
               checked={isEnabled}
@@ -69,16 +71,16 @@ export default function WaterReminder() {
           </div>
           {isEnabled && (
             <div className="flex items-center justify-between">
-              <Label htmlFor="water-interval-select">Remind me every</Label>
+              <Label htmlFor="water-interval-select">{t('remind_me_every_label')}</Label>
               <Select value={interval} onValueChange={setInterval}>
                 <SelectTrigger id="water-interval-select" className="w-[180px]">
-                  <SelectValue placeholder="Select interval" />
+                  <SelectValue placeholder={t('select_interval_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="2">2 hours</SelectItem>
-                  <SelectItem value="3">3 hours</SelectItem>
-                  <SelectItem value="4">4 hours</SelectItem>
+                  <SelectItem value="1">{t('interval_1_hour')}</SelectItem>
+                  <SelectItem value="2">{t('interval_2_hours')}</SelectItem>
+                  <SelectItem value="3">{t('interval_3_hours')}</SelectItem>
+                  <SelectItem value="4">{t('interval_4_hours')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -87,9 +89,9 @@ export default function WaterReminder() {
 
         <div className="space-y-4 pt-4 border-t">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Today's Intake</h3>
+            <h3 className="font-semibold">{t('todays_intake_title')}</h3>
              <div className="flex items-center gap-2">
-              <Label htmlFor="water-goal" className="text-sm text-muted-foreground">Goal:</Label>
+              <Label htmlFor="water-goal" className="text-sm text-muted-foreground">{t('goal_label')}:</Label>
               <Input
                 id="water-goal"
                 type="number"
@@ -108,20 +110,20 @@ export default function WaterReminder() {
           <Progress value={progressPercentage} />
           <div>
             <p className="text-center text-sm text-muted-foreground">
-              Log your water intake:
+              {t('log_water_intake_label')}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 onClick={() => handleAddWater(GLASS_ML)}
               >
-                <Plus className="mr-2" /> Add a Glass ({GLASS_ML}ml)
+                <Plus className="mr-2" /> {t('add_a_glass_button')} ({GLASS_ML}ml)
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleAddWater(BOTTLE_ML)}
               >
-                <Plus className="mr-2" /> Add a Bottle ({BOTTLE_ML}ml)
+                <Plus className="mr-2" /> {t('add_a_bottle_button')} ({BOTTLE_ML}ml)
               </Button>
             </div>
             <div className="mt-2">
@@ -130,7 +132,7 @@ export default function WaterReminder() {
                 className="w-full text-muted-foreground"
                 onClick={handleReset}
               >
-                Reset Intake
+                {t('reset_intake_button')}
               </Button>
             </div>
           </div>

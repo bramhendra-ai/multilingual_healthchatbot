@@ -20,6 +20,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface Message {
   id: number;
@@ -36,11 +37,12 @@ const languages = [
 
 export default function HealthAssistant() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   // Chatbot state
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: 'Hello! How can I help you with your health today?',
+      text: t('chatbot_welcome_message'),
       sender: 'bot',
     },
   ]);
@@ -68,6 +70,14 @@ export default function HealthAssistant() {
       });
     }
   }, [messages]);
+  
+  useEffect(() => {
+    setMessages([{
+      id: 1,
+      text: t('chatbot_welcome_message'),
+      sender: 'bot'
+    }]);
+  }, [t]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,13 +107,12 @@ export default function HealthAssistant() {
       console.error('Chatbot error:', error);
       toast({
         variant: 'destructive',
-        title: 'An error occurred',
-        description:
-          'Could not get a response from the assistant. Please try again.',
+        title: t('error_toast_title'),
+        description: t('chatbot_error_toast_description'),
       });
       const errorMessage: Message = {
         id: Date.now() + 1,
-        text: 'Sorry, I am having trouble connecting. Please try again later.',
+        text: t('chatbot_error_message'),
         sender: 'bot',
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -127,8 +136,8 @@ export default function HealthAssistant() {
       console.error('Symptom checker error:', error);
       toast({
         variant: 'destructive',
-        title: 'An error occurred',
-        description: 'Could not get suggestions. Please try again.',
+        title: t('error_toast_title'),
+        description: t('symptom_checker_error_toast_description'),
       });
     } finally {
       setIsSymptomLoading(false);
@@ -138,20 +147,20 @@ export default function HealthAssistant() {
   return (
     <Tabs defaultValue="chatbot" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="chatbot">Multilingual Chatbot</TabsTrigger>
-        <TabsTrigger value="symptom-checker">Symptom Checker</TabsTrigger>
+        <TabsTrigger value="chatbot">{t('chatbot_tab_title')}</TabsTrigger>
+        <TabsTrigger value="symptom-checker">{t('symptom_checker_tab_title')}</TabsTrigger>
       </TabsList>
       <TabsContent value="chatbot">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Health Assistant Chat</CardTitle>
+            <CardTitle className="font-headline">{t('chatbot_card_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col h-[60vh]">
               <div className="flex justify-end mb-4">
                 <Select value={chatLanguage} onValueChange={setChatLanguage}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select language" />
+                    <SelectValue placeholder={t('select_language_placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {languages.map((lang) => (
@@ -227,7 +236,7 @@ export default function HealthAssistant() {
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Type your health query..."
+                  placeholder={t('chatbot_input_placeholder')}
                   disabled={isChatLoading}
                 />
                 <Button type="submit" disabled={isChatLoading}>
@@ -245,7 +254,7 @@ export default function HealthAssistant() {
       <TabsContent value="symptom-checker">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Symptom Checker</CardTitle>
+            <CardTitle className="font-headline">{t('symptom_checker_card_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSymptomSubmit} className="space-y-4">
@@ -255,7 +264,7 @@ export default function HealthAssistant() {
                   onValueChange={setSymptomLanguage}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select language" />
+                    <SelectValue placeholder={t('select_language_placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {languages.map((lang) => (
@@ -271,18 +280,18 @@ export default function HealthAssistant() {
                   htmlFor="symptoms"
                   className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Describe your symptoms
+                  {t('symptom_checker_input_label')}
                 </label>
                 <Textarea
                   id="symptoms"
                   value={symptoms}
                   onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g., headache, fever, cough"
+                  placeholder={t('symptom_checker_input_placeholder')}
                   rows={4}
                   disabled={isSymptomLoading}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Please separate symptoms with commas.
+                  {t('symptom_checker_input_description')}
                 </p>
               </div>
               <Button type="submit" disabled={isSymptomLoading}>
@@ -291,21 +300,21 @@ export default function HealthAssistant() {
                 ) : (
                   <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                Get Suggestions
+                {t('get_suggestions_button')}
               </Button>
             </form>
             {isSymptomLoading && (
               <div className="mt-6 flex flex-col items-center justify-center text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="mt-2 text-muted-foreground">
-                  Analyzing your symptoms...
+                  {t('symptom_checker_loading_message')}
                 </p>
               </div>
             )}
             {suggestion && (
               <div className="mt-6">
                 <h3 className="text-lg font-headline font-semibold">
-                  Suggestions
+                  {t('suggestions_title')}
                 </h3>
                 <Card className="mt-2 bg-secondary">
                   <CardContent className="p-4">
