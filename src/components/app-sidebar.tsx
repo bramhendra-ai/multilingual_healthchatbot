@@ -17,6 +17,7 @@ import {
   BarChart3,
   LogOut,
   Pill,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -28,6 +29,7 @@ const navItems = [
   { href: '/chatbot', icon: <Bot />, label: 'Health Assistant' },
   { href: '/reminders', icon: <BellRing />, label: 'Reminders' },
   { href: '/history', icon: <BarChart3 />, label: 'History' },
+  { href: '/profile', icon: <User />, label: 'Profile' },
 ];
 
 export default function AppSidebar() {

@@ -7,6 +7,7 @@ const pageTitles: Record<string, string> = {
   '/chatbot': 'Health Assistant',
   '/reminders': 'Reminders & Logs',
   '/history': 'Health History',
+  '/profile': 'Profile',
 };
 
 export default function Header() {
