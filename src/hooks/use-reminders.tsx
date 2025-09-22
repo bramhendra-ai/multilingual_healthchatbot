@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from 'react';
 import type { Medicine } from '@/lib/types';
-import { addDays, format } from 'date-fns';
+import { addDays, format, isToday } from 'date-fns';
 
 // Define types for state
 interface WaterReminderState {
@@ -16,6 +16,7 @@ interface WaterReminderState {
   interval: string; // in hours
   intake: number;
   goal: number;
+  history: Record<string, number>; // { 'YYYY-MM-DD': 2500 }
 }
 
 interface ReminderContextType {
@@ -41,6 +42,7 @@ const defaultWaterReminderState: WaterReminderState = {
   interval: '2',
   intake: 0,
   goal: 2000,
+  history: {},
 };
 
 const mockMedicines: Medicine[] = [
@@ -80,7 +82,29 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<Re
     }
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item, (k, v) => k.endsWith("Date") ? new Date(v) : v) : initialValue;
+      if (!item) return initialValue;
+
+      const parsed = JSON.parse(item, (k, v) => {
+        // More robust date parsing
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(v)) {
+           if (k.endsWith("Date") || k === "startDate") return new Date(v);
+        }
+        return v;
+      });
+
+      // Special handling for waterReminder state to ensure intake is reset daily
+      if (key === 'waterReminder') {
+         const lastUpdatedStr = window.localStorage.getItem('waterReminderLastUpdated');
+         if (lastUpdatedStr) {
+           const lastUpdated = new Date(lastUpdatedStr);
+           if (!isToday(lastUpdated)) {
+             parsed.intake = 0; // Reset daily intake
+           }
+         }
+      }
+
+      return parsed;
+
     } catch (error) {
       console.log(error);
       return initialValue;
@@ -94,6 +118,10 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<Re
       setStoredValue(valueToStore);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
+
+        if (key === 'waterReminder') {
+           window.localStorage.setItem('waterReminderLastUpdated', new Date().toISOString());
+        }
       }
     } catch (error) {
       console.log(error);
@@ -146,6 +174,24 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       })
     );
   };
+
+  // Effect to update water history when intake changes
+  useEffect(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    setWaterReminder(prev => {
+        // Only update if the value has changed
+        if (prev.history[today] !== prev.intake) {
+            return {
+                ...prev,
+                history: {
+                    ...prev.history,
+                    [today]: prev.intake,
+                },
+            };
+        }
+        return prev;
+    });
+  }, [waterReminder.intake, setWaterReminder]);
 
   const value = {
     medicines,

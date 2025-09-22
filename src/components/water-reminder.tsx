@@ -72,17 +72,14 @@ export default function WaterReminder() {
   };
 
   const handleAddWater = (amount: number) => {
-    setWaterReminder({
-      ...waterReminder,
-      intake: Math.min(
-        waterReminder.intake + amount,
-        waterReminder.goal * 2
-      ),
-    });
+    setWaterReminder((prev) => ({
+      ...prev,
+      intake: prev.intake + amount,
+    }));
   };
 
   const handleReset = () => {
-    setWaterReminder({ ...waterReminder, intake: 0 });
+    setWaterReminder((prev) => ({ ...prev, intake: 0 }));
   };
 
   const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
