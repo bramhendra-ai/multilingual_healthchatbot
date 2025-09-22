@@ -16,7 +16,7 @@ import { useReminders } from '@/hooks/use-reminders';
 import { format, subDays, addDays } from 'date-fns';
 import { useState } from 'react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+// Note: jspdf-autotable is imported dynamically below
 
 const ML_PER_GLASS = 250;
 
@@ -66,15 +66,18 @@ export default function HistoryPage() {
     return reportData;
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setLoading(true);
     try {
       const data = generateReportData();
       const doc = new jsPDF();
+      
+      // Dynamically import jspdf-autotable
+      const { default: autoTable } = await import('jspdf-autotable');
 
       doc.text("Health Report - Last 7 Days", 14, 15);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 20,
         head: [['Date', 'Day', 'Medicine Adherence (%)', 'Water Intake (ml)', 'Water Intake (glasses)']],
         body: data.map(row => [
