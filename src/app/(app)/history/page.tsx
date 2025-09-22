@@ -15,6 +15,8 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useReminders } from '@/hooks/use-reminders';
 import { format, subDays, addDays } from 'date-fns';
 import { useState } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const ML_PER_GLASS = 250;
 
@@ -68,35 +70,24 @@ export default function HistoryPage() {
     setLoading(true);
     try {
       const data = generateReportData();
-      const headers = [
-        'Date',
-        'Day',
-        'Medicine Adherence (%)',
-        'Water Intake (ml)',
-        'Water Intake (glasses)',
-      ];
-      const csvContent =
-        'data:text/csv;charset=utf-8,' +
-        [
-          headers.join(','),
-          ...data.map((row) =>
-            [
-              row.date,
-              row.day,
-              row.adherence,
-              row.waterIntakeMl,
-              row.waterIntakeGlasses,
-            ].join(',')
-          ),
-        ].join('\n');
+      const doc = new jsPDF();
 
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', 'health_report.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      doc.text("Health Report - Last 7 Days", 14, 15);
+
+      (doc as any).autoTable({
+        startY: 20,
+        head: [['Date', 'Day', 'Medicine Adherence (%)', 'Water Intake (ml)', 'Water Intake (glasses)']],
+        body: data.map(row => [
+          row.date,
+          row.day,
+          row.adherence,
+          row.waterIntakeMl,
+          row.waterIntakeGlasses
+        ])
+      });
+
+      doc.save('health_report.pdf');
+
     } finally {
       setLoading(false);
     }
