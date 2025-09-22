@@ -47,13 +47,13 @@ import * as z from 'zod';
 import { Input } from './ui/input';
 import { useState, useEffect } from 'react';
 import type { Medicine } from '@/lib/types';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Checkbox } from './ui/checkbox';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from './ui/badge';
-import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { useReminders } from '@/hooks/use-reminders';
 
 const timeStringSchema = z
   .string()
@@ -68,35 +68,16 @@ const medicineSchema = z.object({
   duration: z.coerce.number().min(1, 'Duration must be at least 1 day'),
 });
 
-const mockMedicines: Medicine[] = [
-  {
-    id: '1',
-    name: 'Paracetamol',
-    dosage: '500mg',
-    times: ['09:00', '21:00'],
-    duration: 7,
-    startDate: new Date(),
-    taken: {
-      [format(new Date(), 'yyyy-MM-dd')]: [false, false],
-    },
-  },
-  {
-    id: '2',
-    name: 'Vitamin C',
-    dosage: '1000mg',
-    times: ['12:00'],
-    duration: 30,
-    startDate: addDays(new Date(), -5),
-    taken: {
-      [format(new Date(), 'yyyy-MM-dd')]: [true],
-    },
-  },
-];
-
 export default function MedicineReminder() {
-  const [medicines, setMedicines] = useState<Medicine[]>(mockMedicines);
+  const {
+    medicines,
+    addMedicine,
+    removeMedicine,
+    handleTakenChange,
+    medicineRemindersEnabled,
+    setMedicineRemindersEnabled,
+  } = useReminders();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [remindersEnabled, setRemindersEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState('default');
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -120,48 +101,14 @@ export default function MedicineReminder() {
     name: 'times',
   });
 
-  useEffect(() => {
-    if (!remindersEnabled || notificationPermission !== 'granted') return;
-
-    const checkReminders = () => {
-      const now = new Date();
-      const today = format(now, 'yyyy-MM-dd');
-      const currentTime = format(now, 'HH:mm');
-
-      medicines.forEach((med) => {
-        med.times.forEach((time, index) => {
-          const takenToday = med.taken[today] && med.taken[today][index];
-          if (time === currentTime && !takenToday) {
-             const notificationBody = `${t('medicine_notification_body_part1')} ${med.name} ${med.dosage} ${t('medicine_notification_body_part2')}`;
-            
-            // In-app toast notification
-            toast({
-                title: t('medicine_notification_title'),
-                description: notificationBody,
-            });
-
-            // Browser notification
-             new Notification(t('medicine_notification_title'), {
-                body: notificationBody,
-                icon: '/logo.svg',
-             });
-          }
-        });
-      });
-    };
-
-    const interval = setInterval(checkReminders, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, [medicines, remindersEnabled, t, toast, notificationPermission]);
-
   const toggleReminders = () => {
     if (notificationPermission === 'denied') {
       return; // Do nothing if permission is denied
     }
 
-    if (!remindersEnabled) {
+    if (!medicineRemindersEnabled) {
       if (notificationPermission === 'granted') {
-        setRemindersEnabled(true);
+        setMedicineRemindersEnabled(true);
         toast({
           title: t('notifications_enabled_title'),
           description: t('notifications_enabled_description'),
@@ -170,7 +117,7 @@ export default function MedicineReminder() {
         Notification.requestPermission().then((permission) => {
           setNotificationPermission(permission);
           if (permission === 'granted') {
-            setRemindersEnabled(true);
+            setMedicineRemindersEnabled(true);
             toast({
               title: t('notifications_enabled_title'),
               description: t('notifications_enabled_description'),
@@ -179,7 +126,7 @@ export default function MedicineReminder() {
         });
       }
     } else {
-      setRemindersEnabled(false);
+      setMedicineRemindersEnabled(false);
       toast({
         title: t('notifications_disabled_title'),
         description: t('notifications_disabled_description'),
@@ -188,43 +135,15 @@ export default function MedicineReminder() {
   };
 
   const onSubmit = (values: z.infer<typeof medicineSchema>) => {
-    const newMedicine: Medicine = {
-      id: String(Date.now()),
+    const newMedicine: Omit<Medicine, 'id' | 'taken' | 'startDate'> = {
       name: values.name,
       dosage: values.dosage,
       times: values.times,
       duration: values.duration,
-      startDate: new Date(),
-      taken: {},
     };
-    setMedicines((prev) => [...prev, newMedicine]);
+    addMedicine(newMedicine);
     form.reset();
     setIsDialogOpen(false);
-  };
-
-  const removeMedicine = (id: string) => {
-    setMedicines((prev) => prev.filter((med) => med.id !== id));
-  };
-
-  const handleTakenChange = (
-    medId: string,
-    date: string,
-    timeIndex: number,
-    isChecked: boolean
-  ) => {
-    setMedicines((prevMeds) =>
-      prevMeds.map((med) => {
-        if (med.id === medId) {
-          const newTaken = { ...med.taken };
-          if (!newTaken[date]) {
-            newTaken[date] = Array(med.times.length).fill(false);
-          }
-          newTaken[date][timeIndex] = isChecked;
-          return { ...med, taken: newTaken };
-        }
-        return med;
-      })
-    );
   };
 
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -255,17 +174,17 @@ export default function MedicineReminder() {
   const renderReminderButton = () => {
     const button = (
       <Button
-        variant={remindersEnabled ? 'default' : 'outline'}
+        variant={medicineRemindersEnabled ? 'default' : 'outline'}
         size="icon"
         onClick={toggleReminders}
         disabled={notificationPermission === 'denied'}
         aria-label={
-          remindersEnabled
+          medicineRemindersEnabled
             ? t('disable_notifications_aria_label')
             : t('enable_notifications_aria_label')
         }
       >
-        {remindersEnabled ? (
+        {medicineRemindersEnabled ? (
           <BellOff className="h-4 w-4" />
         ) : (
           <Bell className="h-4 w-4" />

@@ -17,12 +17,13 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
-import { Droplets, Minus, Plus } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Input } from './ui/input';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { useReminders } from '@/hooks/use-reminders';
 
 const GLASS_ML = 250;
 const BOTTLE_ML = 500;
@@ -30,38 +31,17 @@ const BOTTLE_ML = 500;
 export default function WaterReminder() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [interval, setInterval] = useState('2'); // in hours
-  const [intake, setIntake] = useState(0);
-  const [waterGoal, setWaterGoal] = useState(2000);
+  const { waterReminder, setWaterReminder } = useReminders();
   const [notificationPermission, setNotificationPermission] = useState('default');
 
   useEffect(() => {
-      setNotificationPermission(Notification.permission);
+    setNotificationPermission(Notification.permission);
   }, []);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (isEnabled && notificationPermission === 'granted') {
-      const intervalInMs = parseInt(interval) * 60 * 60 * 1000;
-      timer = setInterval(() => {
-        new Notification(t('water_reminder_title'), {
-          body: t('water_notification_body'),
-          icon: '/logo.svg', // Assuming you have a logo in public
-        });
-      }, intervalInMs);
-    }
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [isEnabled, interval, t, notificationPermission]);
-
   const handleEnableSwitch = (checked: boolean) => {
-     if (checked) {
+    if (checked) {
       if (notificationPermission === 'granted') {
-        setIsEnabled(true);
+        setWaterReminder({ ...waterReminder, isEnabled: true });
         toast({
           title: t('notifications_enabled_title'),
           description: t('notifications_enabled_description'),
@@ -70,7 +50,7 @@ export default function WaterReminder() {
         Notification.requestPermission().then((permission) => {
           setNotificationPermission(permission);
           if (permission === 'granted') {
-            setIsEnabled(true);
+            setWaterReminder({ ...waterReminder, isEnabled: true });
             toast({
               title: t('notifications_enabled_title'),
               description: t('notifications_enabled_description'),
@@ -79,40 +59,49 @@ export default function WaterReminder() {
         });
       }
     } else {
-      setIsEnabled(false);
+      setWaterReminder({ ...waterReminder, isEnabled: false });
       toast({
         title: t('notifications_disabled_title'),
         description: t('notifications_disabled_description'),
       });
     }
-  }
+  };
 
+  const handleIntervalChange = (interval: string) => {
+    setWaterReminder({ ...waterReminder, interval });
+  };
 
   const handleAddWater = (amount: number) => {
-    setIntake((prev) => Math.min(prev + amount, waterGoal * 2)); // Cap at 2x goal
+    setWaterReminder({
+      ...waterReminder,
+      intake: Math.min(
+        waterReminder.intake + amount,
+        waterReminder.goal * 2
+      ),
+    });
   };
 
   const handleReset = () => {
-    setIntake(0);
+    setWaterReminder({ ...waterReminder, intake: 0 });
   };
 
   const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newGoal = parseInt(e.target.value, 10);
     if (!isNaN(newGoal) && newGoal > 0) {
-      setWaterGoal(newGoal);
+      setWaterReminder({ ...waterReminder, goal: newGoal });
     } else if (e.target.value === '') {
-      setWaterGoal(0);
+      setWaterReminder({ ...waterReminder, goal: 0 });
     }
   };
-  
+
   const renderEnableSwitch = () => {
     const switchControl = (
-       <Switch
-          id="water-reminder-switch"
-          checked={isEnabled}
-          onCheckedChange={handleEnableSwitch}
-          disabled={notificationPermission === 'denied'}
-        />
+      <Switch
+        id="water-reminder-switch"
+        checked={waterReminder.isEnabled}
+        onCheckedChange={handleEnableSwitch}
+        disabled={notificationPermission === 'denied'}
+      />
     );
 
     if (notificationPermission === 'denied') {
@@ -128,9 +117,12 @@ export default function WaterReminder() {
       );
     }
     return switchControl;
-  }
+  };
 
-  const progressPercentage = waterGoal > 0 ? (intake / waterGoal) * 100 : 0;
+  const progressPercentage =
+    waterReminder.goal > 0
+      ? (waterReminder.intake / waterReminder.goal) * 100
+      : 0;
 
   return (
     <Card>
@@ -148,12 +140,15 @@ export default function WaterReminder() {
             </Label>
             {renderEnableSwitch()}
           </div>
-          {isEnabled && (
+          {waterReminder.isEnabled && (
             <div className="flex items-center justify-between">
               <Label htmlFor="water-interval-select">
                 {t('remind_me_every_label')}
               </Label>
-              <Select value={interval} onValueChange={setInterval}>
+              <Select
+                value={waterReminder.interval}
+                onValueChange={handleIntervalChange}
+              >
                 <SelectTrigger id="water-interval-select" className="w-[180px]">
                   <SelectValue placeholder={t('select_interval_placeholder')} />
                 </SelectTrigger>
@@ -181,7 +176,7 @@ export default function WaterReminder() {
               <Input
                 id="water-goal"
                 type="number"
-                value={waterGoal}
+                value={waterReminder.goal}
                 onChange={handleGoalChange}
                 className="w-24 h-8"
                 min="1"
@@ -191,7 +186,9 @@ export default function WaterReminder() {
             </div>
           </div>
           <div className="text-center">
-            <p className="text-4xl font-bold text-primary">{intake}ml</p>
+            <p className="text-4xl font-bold text-primary">
+              {waterReminder.intake}ml
+            </p>
           </div>
           <Progress value={progressPercentage} />
           <div>
