@@ -1,0 +1,14 @@
+{
+  "profile_title": "Profile",
+  "profile_description": "Manage your personal information and preferences.",
+  "personal_information_title": "Personal Information",
+  "personal_information_description": "Update your name and email.",
+  "name_label": "Name",
+  "email_label": "Email",
+  "preferences_title": "Preferences",
+  "preferences_description": "Customize your experience in the app.",
+  "preferred_language_label": "Preferred Language",
+  "save_changes_button": "Save Changes",
+  "profile_updated_toast_title": "Profile Updated",
+  "profile_updated_toast_description": "Your changes have been saved successfully."
+}

@@ -1,0 +1,14 @@
+{
+  "profile_title": "சுயவிவரம்",
+  "profile_description": "உங்கள் தனிப்பட்ட தகவல் மற்றும் விருப்பத்தேர்வுகளை நிர்வகிக்கவும்.",
+  "personal_information_title": "தனிப்பட்ட தகவல்",
+  "personal_information_description": "உங்கள் பெயர் மற்றும் மின்னஞ்சலைப் புதுப்பிக்கவும்.",
+  "name_label": "பெயர்",
+  "email_label": "மின்னஞ்சல்",
+  "preferences_title": "விருப்பத்தேர்வுகள்",
+  "preferences_description": "பயன்பாட்டில் உங்கள் அனுபவத்தைத் தனிப்பயனாக்குங்கள்.",
+  "preferred_language_label": "விருப்பமான மொழி",
+  "save_changes_button": "மாற்றங்களைச் சேமி",
+  "profile_updated_toast_title": "சுயவிவரம் புதுப்பிக்கப்பட்டது",
+  "profile_updated_toast_description": "உங்கள் மாற்றங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன."
+}

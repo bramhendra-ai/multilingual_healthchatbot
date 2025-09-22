@@ -1,0 +1,14 @@
+{
+  "profile_title": "प्रोफ़ाइल",
+  "profile_description": "अपनी व्यक्तिगत जानकारी और प्राथमिकताएं प्रबंधित करें।",
+  "personal_information_title": "व्यक्तिगत जानकारी",
+  "personal_information_description": "अपना नाम और ईमेल अपडेट करें।",
+  "name_label": "नाम",
+  "email_label": "ईमेल",
+  "preferences_title": "प्राथमिकताएँ",
+  "preferences_description": "ऐप में अपने अनुभव को अनुकूलित करें।",
+  "preferred_language_label": "पसंदीदा भाषा",
+  "save_changes_button": "बदलाव सहेजें",
+  "profile_updated_toast_title": "प्रोफ़ाइल अपडेट किया गया",
+  "profile_updated_toast_description": "आपके परिवर्तन सफलतापूर्वक सहेजे गए हैं।"
+}

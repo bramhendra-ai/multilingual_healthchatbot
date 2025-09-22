@@ -1,0 +1,14 @@
+{
+  "profile_title": "ప్రొఫైల్",
+  "profile_description": "మీ వ్యక్తిగత సమాచారం మరియు ప్రాధాన్యతలను నిర్వహించండి.",
+  "personal_information_title": "వ్యక్తిగత సమాచారం",
+  "personal_information_description": "మీ పేరు మరియు ఇమెయిల్‌ను నవీకరించండి.",
+  "name_label": "పేరు",
+  "email_label": "ఇమెయిల్",
+  "preferences_title": "ప్రాధాన్యతలు",
+  "preferences_description": "యాప్‌లో మీ అనుభవాన్ని అనుకూలీకరించండి.",
+  "preferred_language_label": "ఇష్టపడే భాష",
+  "save_changes_button": "మార్పులనుభద్రపరచు",
+  "profile_updated_toast_title": "ప్రొఫైల్ నవీకరించబడింది",
+  "profile_updated_toast_description": "మీ మార్పులు విజయవంతంగా సేవ్ చేయబడ్డాయి."
+}
