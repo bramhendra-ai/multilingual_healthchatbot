@@ -21,8 +21,9 @@ import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
+import { Message, Role } from 'genkit/ai';
 
-interface Message {
+interface DisplayMessage {
   id: number;
   text: string;
   sender: 'user' | 'bot';
@@ -39,13 +40,8 @@ export default function HealthAssistant() {
   const { toast } = useToast();
   const { t } = useTranslation();
   // Chatbot state
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: t('chatbot_welcome_message'),
-      sender: 'bot',
-    },
-  ]);
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLanguage, setChatLanguage] = useState('English');
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -70,39 +66,56 @@ export default function HealthAssistant() {
       });
     }
   }, [messages]);
-  
+
   useEffect(() => {
-    setMessages([{
+    const welcomeMessage: DisplayMessage = {
       id: 1,
       text: t('chatbot_welcome_message'),
-      sender: 'bot'
-    }]);
+      sender: 'bot',
+    };
+    setMessages([welcomeMessage]);
+
+    const welcomeHistory: Message = {
+      role: 'model' as Role,
+      content: [{ text: t('chatbot_welcome_message') }],
+    };
+    setChatHistory([welcomeHistory]);
   }, [t]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const newUserMessage: Message = {
+    const newUserMessage: DisplayMessage = {
       id: Date.now(),
       text: chatInput,
       sender: 'user',
     };
     setMessages((prev) => [...prev, newUserMessage]);
+
+    const newHistory: Message[] = [
+      ...chatHistory,
+      { role: 'user', content: [{ text: chatInput }] },
+    ];
+    setChatHistory(newHistory);
     setChatInput('');
     setIsChatLoading(true);
 
     try {
       const response = await multilingualHealthQueryChatbot({
-        query: chatInput,
+        history: newHistory,
         language: chatLanguage,
       });
-      const botMessage: Message = {
+      const botMessage: DisplayMessage = {
         id: Date.now() + 1,
         text: response.response,
         sender: 'bot',
       };
       setMessages((prev) => [...prev, botMessage]);
+      setChatHistory((prev) => [
+        ...prev,
+        { role: 'model', content: [{ text: response.response }] },
+      ]);
     } catch (error) {
       console.error('Chatbot error:', error);
       toast({
@@ -110,7 +123,7 @@ export default function HealthAssistant() {
         title: t('error_toast_title'),
         description: t('chatbot_error_toast_description'),
       });
-      const errorMessage: Message = {
+      const errorMessage: DisplayMessage = {
         id: Date.now() + 1,
         text: t('chatbot_error_message'),
         sender: 'bot',

@@ -8,13 +8,21 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {Message, Role, generate} from 'genkit/ai';
 import {z} from 'genkit';
 
 const MultilingualHealthQueryChatbotInputSchema = z.object({
-  query: z.string().describe('The health query from the user in English, Hindi, Telugu, or Tamil.'),
+  history: z.array(
+    z.object({
+      role: z.enum(['user', 'model']),
+      content: z.array(z.object({text: z.string()})),
+    })
+  ),
   language: z
     .string()
-    .describe('The language of the query.  Must be one of: English, Hindi, Telugu, or Tamil'),
+    .describe(
+      'The language of the query.  Must be one of: English, Hindi, Telugu, or Tamil'
+    ),
 });
 export type MultilingualHealthQueryChatbotInput = z.infer<
   typeof MultilingualHealthQueryChatbotInputSchema
@@ -33,44 +41,34 @@ export async function multilingualHealthQueryChatbot(
   return multilingualHealthQueryChatbotFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'multilingualHealthQueryChatbotPrompt',
-  input: {schema: MultilingualHealthQueryChatbotInputSchema},
-  output: {schema: MultilingualHealthQueryChatbotOutputSchema},
-  prompt: `You are a multilingual health assistant. You can understand and respond in English, Hindi, Telugu, and Tamil.
+const systemPrompt = `You are a multilingual health assistant. You can understand and respond in English, Hindi, Telugu, and Tamil.
 
-  The user will provide a health query and the language of the query. You must respond in the same language.
+The user will provide a health query and the language of the query. You must respond in the same language.
 
-  Based on the query, suggest possible diseases and basic medicines. Your response should be brief and to the point, but not too short. If the case seems severe, add a caution to consult a doctor.
+Based on the query, suggest possible diseases and basic medicines. Your response should be brief and to the point, but not too short. If the case seems severe, add a caution to consult a doctor.
 
-  Here are some common diseases and their symptoms:
-  COVID-19: fever, cold, body pains
-  Dengue: fever, headache, rash
-  Typhoid: fever, headache, abdominal pain
-  Malaria: fever, chills, sweating
-  Common Cold: runny nose, sore throat, cough
-  Influenza (Flu): fever, cough, body aches
-  Migraine / Headache: throbbing headache, nausea, sensitivity to light
-  Diabetes: frequent urination, excessive thirst, unexplained weight loss
-  Hypertension (High BP): severe headache, chest pain, difficulty breathing
-  Asthma: shortness of breath, wheezing, coughing
-  Tuberculosis (TB): persistent cough, weight loss, night sweats
-  Chickenpox: itchy rash, fever, fatigue
-  Food Poisoning: nausea, vomiting, diarrhea
-  Anemia: fatigue, weakness, pale skin
-  Heat Stroke: high body temperature, headache, dizziness
-  Jaundice: yellowing of the skin and eyes, dark urine, abdominal pain
-  Pneumonia: cough with phlegm, fever, chest pain
-  Arthritis: joint pain, stiffness, swelling
-  Stroke: sudden numbness or weakness, difficulty speaking, loss of balance
-  Heart Attack (Myocardial Infarction): chest pain, shortness of breath, nausea
-
-  Query: {{{query}}}
-  Language: {{{language}}}
-
-  Response:
-  `,
-});
+Here are some common diseases and their symptoms:
+COVID-19: fever, cold, body pains
+Dengue: fever, headache, rash
+Typhoid: fever, headache, abdominal pain
+Malaria: fever, chills, sweating
+Common Cold: runny nose, sore throat, cough
+Influenza (Flu): fever, cough, body aches
+Migraine / Headache: throbbing headache, nausea, sensitivity to light
+Diabetes: frequent urination, excessive thirst, unexplained weight loss
+Hypertension (High BP): severe headache, chest pain, difficulty breathing
+Asthma: shortness of breath, wheezing, coughing
+Tuberculosis (TB): persistent cough, weight loss, night sweats
+Chickenpox: itchy rash, fever, fatigue
+Food Poisoning: nausea, vomiting, diarrhea
+Anemia: fatigue, weakness, pale skin
+Heat Stroke: high body temperature, headache, dizziness
+Jaundice: yellowing of the skin and eyes, dark urine, abdominal pain
+Pneumonia: cough with phlegm, fever, chest pain
+Arthritis: joint pain, stiffness, swelling
+Stroke: sudden numbness or weakness, difficulty speaking, loss of balance
+Heart Attack (Myocardial Infarction): chest pain, shortness of breath, nausea
+`;
 
 const multilingualHealthQueryChatbotFlow = ai.defineFlow(
   {
@@ -79,7 +77,18 @@ const multilingualHealthQueryChatbotFlow = ai.defineFlow(
     outputSchema: MultilingualHealthQueryChatbotOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const {history} = input;
+    const lastUserMessage = history[history.length - 1];
+
+    const response = await generate({
+      prompt: lastUserMessage.content[0].text,
+      history,
+      system: `${systemPrompt}\nLanguage: ${input.language}`,
+      output: {
+        schema: MultilingualHealthQueryChatbotOutputSchema,
+      },
+    });
+
+    return {response: response.output?.response || ''};
   }
 );
