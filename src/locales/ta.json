@@ -108,5 +108,6 @@
   "disable_notifications_aria_label": "அறிவிப்புகளை முடக்கு",
   "medicine_status_taken": "எடுக்கப்பட்டது",
   "medicine_status_missed": "தவறியது",
-  "medicine_status_pending": "நிலுவையில்"
+  "medicine_status_pending": "நிலுவையில்",
+  "add_time_button": "நேரம் சேர்க்கவும்"
 }

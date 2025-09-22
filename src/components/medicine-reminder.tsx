@@ -16,7 +16,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './ui/button';
-import { Pill, PlusCircle, Clock, Trash2, Bell, BellOff } from 'lucide-react';
+import {
+  Pill,
+  PlusCircle,
+  Clock,
+  Trash2,
+  Bell,
+  BellOff,
+  X,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -33,7 +41,7 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Input } from './ui/input';
@@ -44,11 +52,18 @@ import { Checkbox } from './ui/checkbox';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
+
+const timeStringSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm');
 
 const medicineSchema = z.object({
   name: z.string().min(1, 'Medicine name is required'),
   dosage: z.string().min(1, 'Dosage is required (e.g., 500mg)'),
-  times: z.string().min(1, 'Please enter at least one time (e.g., 08:00, 20:00)'),
+  times: z
+    .array(timeStringSchema)
+    .min(1, 'Please enter at least one time.'),
   duration: z.coerce.number().min(1, 'Duration must be at least 1 day'),
 });
 
@@ -83,6 +98,21 @@ export default function MedicineReminder() {
   const [remindersEnabled, setRemindersEnabled] = useState(false);
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof medicineSchema>>({
+    resolver: zodResolver(medicineSchema),
+    defaultValues: {
+      name: '',
+      dosage: '',
+      times: ['09:00'],
+      duration: 7,
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'times',
+  });
 
   useEffect(() => {
     if (!remindersEnabled) return;
@@ -145,22 +175,12 @@ export default function MedicineReminder() {
     }
   };
 
-  const form = useForm<z.infer<typeof medicineSchema>>({
-    resolver: zodResolver(medicineSchema),
-    defaultValues: {
-      name: '',
-      dosage: '',
-      times: '',
-      duration: 7,
-    },
-  });
-
   const onSubmit = (values: z.infer<typeof medicineSchema>) => {
     const newMedicine: Medicine = {
       id: String(Date.now()),
       name: values.name,
       dosage: values.dosage,
-      times: values.times.split(',').map((t) => t.trim()),
+      times: values.times,
       duration: values.duration,
       startDate: new Date(),
       taken: {},
@@ -200,21 +220,23 @@ export default function MedicineReminder() {
   const getStatus = (med: Medicine, timeIndex: number) => {
     const doseTaken = med.taken[today]?.[timeIndex];
     if (doseTaken) {
-      return (
-        <Badge variant="secondary">{t('medicine_status_taken')}</Badge>
-      );
+      return <Badge variant="secondary">{t('medicine_status_taken')}</Badge>;
     }
-    
+
     const now = new Date();
     const [hour, minute] = med.times[timeIndex].split(':');
-    const doseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hour), parseInt(minute));
+    const doseTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      parseInt(hour),
+      parseInt(minute)
+    );
 
     if (now > doseTime) {
-      return (
-        <Badge variant="destructive">{t('medicine_status_missed')}</Badge>
-      );
+      return <Badge variant="destructive">{t('medicine_status_missed')}</Badge>;
     }
-    
+
     return <Badge variant="outline">{t('medicine_status_pending')}</Badge>;
   };
 
@@ -294,23 +316,53 @@ export default function MedicineReminder() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="times"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('times_label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t('times_placeholder')}
-                            {...field}
-                          />
-                        </FormControl>
-                         <p className="text-sm text-muted-foreground">{t('times_description')}</p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                  <div className="space-y-2">
+                    <FormLabel>{t('times_label')}</FormLabel>
+                    <div className="space-y-2">
+                      {fields.map((field, index) => (
+                        <FormField
+                          key={field.id}
+                          control={form.control}
+                          name={`times.${index}`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <FormControl>
+                                  <Input
+                                    type="time"
+                                    className="w-full"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                {fields.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive"
+                                    onClick={() => remove(index)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => append('09:00')}
+                    >
+                      {t('add_time_button')}
+                    </Button>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="duration"
@@ -340,7 +392,9 @@ export default function MedicineReminder() {
               <TableHead>{t('medicine_table_col_medicine')}</TableHead>
               <TableHead>{t('medicine_table_col_dosage')}</TableHead>
               <TableHead>{t('medicine_table_col_schedule')}</TableHead>
-              <TableHead className="text-right">{t('medicine_table_col_actions')}</TableHead>
+              <TableHead className="text-right">
+                {t('medicine_table_col_actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -108,5 +108,6 @@
   "disable_notifications_aria_label": "सूचनाएं अक्षम करें",
   "medicine_status_taken": "लिया हुआ",
   "medicine_status_missed": "छूट गया",
-  "medicine_status_pending": "लंबित"
+  "medicine_status_pending": "लंबित",
+  "add_time_button": "समय जोड़ें"
 }

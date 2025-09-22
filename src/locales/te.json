@@ -108,5 +108,6 @@
   "disable_notifications_aria_label": "నోటిఫికేషన్‌లను నిలిపివేయండి",
   "medicine_status_taken": "తీసుకున్నారు",
   "medicine_status_missed": "తప్పిపోయింది",
-  "medicine_status_pending": "పెండింగ్‌లో ఉంది"
+  "medicine_status_pending": "పెండింగ్‌లో ఉంది",
+  "add_time_button": "సమయం జోడించండి"
 }
