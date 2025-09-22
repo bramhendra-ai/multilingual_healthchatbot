@@ -1,3 +1,4 @@
+
 {
   "profile_title": "ప్రొఫైల్",
   "profile_description": "మీ వ్యక్తిగత సమాచారం మరియు ప్రాధాన్యతలను నిర్వహించండి.",
@@ -103,7 +104,7 @@
   "notifications_disabled_title": "నోటిఫికేషన్‌లు నిలిపివేయబడ్డాయి",
   "notifications_disabled_description": "మీరు ఇకపై రిమైండర్‌లను అందుకోరు.",
   "notification_permission_denied_title": "అనుమతి నిరాకరించబడింది",
-  "notification_permission_denied_description": "రిమైండర్‌ల కోసం నోటిఫికేషన్‌లు అవసరం. దయచేసి వాటిని మీ బ్రౌజర్ సెట్టింగ్‌లలో ప్రారంభించండి.",
+  "notification_permission_denied_description": "నోటిఫికేషన్‌లు బ్లాక్ చేయబడ్డాయి. వాటిని ప్రారంభించడానికి, చిరునామా బార్‌లోని లాక్ చిహ్నాన్ని క్లిక్ చేసి, నోటిఫికేషన్‌లను అనుమతించండి.",
   "enable_notifications_aria_label": "నోటిఫికేషన్‌లను ప్రారంభించండి",
   "disable_notifications_aria_label": "నోటిఫికేషన్‌లను నిలిపివేయండి",
   "medicine_status_taken": "తీసుకున్నారు",

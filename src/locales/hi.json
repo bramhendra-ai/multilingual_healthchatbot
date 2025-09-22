@@ -1,3 +1,4 @@
+
 {
   "profile_title": "प्रोफ़ाइल",
   "profile_description": "अपनी व्यक्तिगत जानकारी और प्राथमिकताएं प्रबंधित करें।",
@@ -103,7 +104,7 @@
   "notifications_disabled_title": "सूचनाएं अक्षम",
   "notifications_disabled_description": "अब आपको अनुस्मारक प्राप्त नहीं होंगे।",
   "notification_permission_denied_title": "अनुमति अस्वीकृत",
-  "notification_permission_denied_description": "अनुस्मारक के लिए सूचनाएं आवश्यक हैं। कृपया उन्हें अपनी ब्राउज़र सेटिंग्स में सक्षम करें।",
+  "notification_permission_denied_description": "सूचनाएं अवरुद्ध हैं। उन्हें सक्षम करने के लिए, पता बार में लॉक आइकन पर क्लिक करें और सूचनाओं की अनुमति दें।",
   "enable_notifications_aria_label": "सूचनाएं सक्षम करें",
   "disable_notifications_aria_label": "सूचनाएं अक्षम करें",
   "medicine_status_taken": "लिया हुआ",

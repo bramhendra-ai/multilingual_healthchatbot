@@ -1,3 +1,4 @@
+
 {
   "profile_title": "Profile",
   "profile_description": "Manage your personal information and preferences.",
@@ -103,7 +104,7 @@
   "notifications_disabled_title": "Notifications Disabled",
   "notifications_disabled_description": "You will no longer receive reminders.",
   "notification_permission_denied_title": "Permission Denied",
-  "notification_permission_denied_description": "Notifications are required for reminders. Please enable them in your browser settings.",
+  "notification_permission_denied_description": "Notifications are blocked. To enable them, click the lock icon in the address bar and allow notifications.",
   "enable_notifications_aria_label": "Enable notifications",
   "disable_notifications_aria_label": "Disable notifications",
   "medicine_status_taken": "Taken",
